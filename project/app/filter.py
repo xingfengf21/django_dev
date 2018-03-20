@@ -4,11 +4,14 @@ import django_filters
 from app.models import Article,ArticleEditRecord
 from app import models
 from taggit.models import Tag
+from django.db.models.aggregates import Count
+
 class ArticleFilter(django_filters.rest_framework.FilterSet):
     title = django_filters.CharFilter(name='title', lookup_expr='icontains')
     tags = django_filters.ModelMultipleChoiceFilter(
         name="tag__name",
-        queryset = Tag.objects.filter(),
+        #queryset = Tag.objects.filter(),
+        queryset = Tag.objects.all().annotate(count=Count("article")).filter(count__gt=0).filter(),
         to_field_name='name',
         # lookup_expr='in',
         label=u'标签分类'

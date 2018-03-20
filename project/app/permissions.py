@@ -8,7 +8,6 @@ class IsArticleOwner(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         #obj为Article对象
-        print "request.user",request.user
         return obj.user == request.user
 
 class IsArticlePost(permissions.BasePermission):

@@ -22,7 +22,7 @@ from app import models
 
 @receiver(ArticleRecordSignal)
 def my_callback(sender, **kwargs):
-    print("Request finished!")
+    #print("Request finished!",kwargs)
     instance = kwargs.get("instance")
     edid_user = kwargs.get("edid_user")
     body_before_edit = kwargs.get("body_before_edit")

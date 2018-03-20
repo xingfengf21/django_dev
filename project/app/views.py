@@ -20,7 +20,6 @@ from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
 @api_view(('GET',))
 def api_root(request, format=None):
-    print "request",request
     return Response({
         u'文件列表和创建': reverse(u'文件列表和创建', request=request, format=format),
         u'文件编辑记录': reverse(u'文件编辑记录', request=request, format=format),
@@ -81,15 +80,11 @@ class ArticleRollbackView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         data =  self.request.data
-        print "data",data
         article_id = data.get("article_id")
         record_id = data.get("record_id")
-        print "article_id", article_id
-        print "record_id", record_id
+
         article = models.Article.objects.filter(pk=article_id).first()
         article_record = models.ArticleEditRecord.objects.filter(pk=record_id).first()
-        print "article",article
-        print "article_record", article_record
         if not article or not article_record:
             return Response("not found",status=404)
         article.title = article_record.title_before_edit
@@ -111,13 +106,13 @@ class ArticleListView(generics.ListCreateAPIView):
         user_articles = models.Article.objects.filter(user_id=self.request.user)
         post_articles = models.Article.objects.filter(post_status="post")
         articles = post_articles | user_articles
-        for a in articles:
-            tags = a.tags.all()
-            print "a-tags",tags
-            for tag in tags:
-                print "one_tag",tag
+        # for a in articles:
+        #     tags = a.tags.all()
+        #     print "a-tags",tags
+        #     for tag in tags:
+        #         print "one_tag",tag
         queryset = articles.order_by("-like_count")
-        print "queryset",queryset
+
         return queryset
 
     def get_serializer_class(self):
@@ -126,7 +121,6 @@ class ArticleListView(generics.ListCreateAPIView):
             self.serializer_class = serializers.ArticleSerializer
         else:
             #列表的情况
-            print "method",self.request.method
             self.serializer_class = serializers.ArticleListSerializer
         return super(ArticleListView, self).get_serializer_class()
 
@@ -154,8 +148,6 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated, IsAdminUser)
 
     def get(self, request, *args, **kwargs):
-        print "test",request.data
-        print "args",kwargs,args
         return self.retrieve(request, *args, **kwargs)
 
 

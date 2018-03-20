@@ -14,8 +14,8 @@ urlpatterns = [
         name=u'文章的查|删|改'),
     url(r'^likes/$', views.UserLikeView.as_view(), name=u'点赞创建'),
 
-    #add
-    url(r'^register/$', views.UserRegisterAPIView.as_view(), name=u'用户创建'),
+    # #add
+    # url(r'^register/$', views.UserRegisterAPIView.as_view(), name=u'用户创建'),
     url(r'^article_records/(?P<pk>[0-9]+)/$',
         views.ArticleEditRecordView.as_view(),
         name=u'文章编辑记录的查|删|改'),

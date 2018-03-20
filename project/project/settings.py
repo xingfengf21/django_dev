@@ -134,8 +134,16 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-
     )
+
 }
 
-TAGGIT_CASE_INSENSITIVE = True
+#TAGGIT_CASE_INSENSITIVE = True
+
+"""
+response return json type
+
+'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+    )
+"""

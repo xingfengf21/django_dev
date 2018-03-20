@@ -50,7 +50,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'password')
 
     def create(self, validated_data):
-        print "validated_data",validated_data
         instance = super(UserSerializer, self).create(validated_data)
         # 密码是通过set_password生成hash，进一步再保存
         instance.set_password(validated_data['password'])
@@ -64,7 +63,6 @@ class ArticleListSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
 
     def get_tags(self, obj):
-        print "obj_type", type(obj), obj
         return obj.tags.names()
 
     def get_like_users(self, obj):
@@ -98,12 +96,10 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         instance = super(ArticleSerializer,self).create(validated_data)
-        print "validated_data:", validated_data
         text = validated_data.get('body_text', instance.body_text)
         tag_names = jieba.analyse.extract_tags(text, topK=3)
         article = Article.objects.filter(pk=instance.id).first()
         for tag_name in tag_names:
-            print "___tags__", tag_name
             tag = Tag.objects.filter(name=tag_name).first()
             if not tag:
                 tag = Tag(name=tag_name)
@@ -115,40 +111,29 @@ class ArticleSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        print "validated_data:", validated_data
+        title_before_edit = instance.title
         text = validated_data.get('body_text', instance.body_text)
-        # if text == instance.body_text:
-        #     print ("No changes.")
-        #     return instance
         tag_names = jieba.analyse.extract_tags(text, topK=3)
         article = Article.objects.filter(pk=instance.id).first()
         instance.tags.clear()
         for tag_name in tag_names:
-            print "___tags__", tag_name
             tag = Tag.objects.filter(name=tag_name).first()
             if not tag:
                 tag = Tag(name=tag_name)
                 tag.save()
-            # else:
-            #     if article not in tag.articles.all():
-            #         tag.count = tag.count + 1
             tag.articles.add(article)
             tag.save()
             instance.tags.add(tag_name)
         user = self.context["request"].user
-        print "user", user
         user_id = user.id
-        print "user_id", user_id
         title = validated_data.get('title', instance.title)
         instance.title = title
-        title_before_edit = instance.title
+
         body_before_edit = instance.body_text
         body_text = validated_data.get('body_text', instance.body_text)
         instance.body_text = body_text
-        instance.like_count = validated_data.get(
-            'like_count', instance.like_count)
-        instance.post_status = validated_data.get(
-            'post_status', instance.post_status)
+        instance.like_count = validated_data.get('like_count', instance.like_count)
+        instance.post_status = validated_data.get('post_status', instance.post_status)
         instance.save()
         edid_user = User.objects.get(id=user_id)
         signals.ArticleRecordSignal.send(sender=Article,
@@ -208,20 +193,16 @@ class TagListSerializer(serializers.ModelSerializer):
     #tags = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
     def get_count(self, obj):
-        print "obj_type", type(obj), obj
         from taggit import models
         from django.db.models import Sum,Count
         #tags = models.Tag.objects.filter(name=obj.name).values("name")
         #t = tags.annotate(count=Count("article")).filter(count__isnull=False)
         tags = models.Tag.objects.filter(name=obj.name).values("name")
         t = tags.annotate(count=Count("article")).filter(count__isnull=False)
-        print "__tags", tags
-        print "__tt", len(t)
-        #print t.first()["count"]
         d = t[0]["count"] if t else 0
         if not d:
             Tag.objects.filter(name=obj.name).delete()
-        return d
+        return
 
     class Meta:
         model = Tag
@@ -238,7 +219,6 @@ class ArticleRecordDiffSerialier(serializers.Serializer):
     def diff(self, *args, **kwargs):
         record1 = self.validated_data
         record2 = self.validated_data
-        print "validated_data", record1
         record1 = record1["record1"]
         record2 = record2["record2"]
         if record2:
@@ -264,18 +244,14 @@ class UnLikeSerializer(serializers.ModelSerializer):
         #     raise serializers.ValidationError(u'已经取消点赞了')
         data['user'] = self.context['request'].user
         article = data["article"]
-        print "article=",article
         return data
 
     def create(self, validated_data):
-        print "validated_data",validated_data
         data = validated_data
         like_instance = Like.objects.filter(
              article=data["article"],
              user=data["user"]).first()
-        print "like_instance",like_instance
         user = validated_data["user"]
-        print user,type(user)
         #instance = super(UnLikeSerializer, self).create(validated_data)
         # # 防止top脏读、脏写
         if not like_instance:
@@ -287,9 +263,6 @@ class UnLikeSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError(u'已经取消点赞了')
         return like_instance
-
-    def update(self, instance, validated_data):
-        print "validated_data",validated_data
 
     class Meta:
         model = Like
