@@ -192,6 +192,7 @@ class ArticleEditRecordSerializer(serializers.ModelSerializer):
 class TagListSerializer(serializers.ModelSerializer):
     #tags = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
+
     def get_count(self, obj):
         from taggit import models
         from django.db.models import Sum,Count
@@ -202,7 +203,7 @@ class TagListSerializer(serializers.ModelSerializer):
         d = t[0]["count"] if t else 0
         if not d:
             Tag.objects.filter(name=obj.name).delete()
-        return
+        return d
 
     class Meta:
         model = Tag

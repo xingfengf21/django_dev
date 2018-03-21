@@ -106,11 +106,6 @@ class ArticleListView(generics.ListCreateAPIView):
         user_articles = models.Article.objects.filter(user_id=self.request.user)
         post_articles = models.Article.objects.filter(post_status="post")
         articles = post_articles | user_articles
-        # for a in articles:
-        #     tags = a.tags.all()
-        #     print "a-tags",tags
-        #     for tag in tags:
-        #         print "one_tag",tag
         queryset = articles.order_by("-like_count")
 
         return queryset
@@ -134,7 +129,9 @@ class ArticleView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated, IsArticlePost)
 
     def perform_destroy(self, instance):
-        #instance.tag_set.all().delete()
+        tags = instance.tag_set.all()
+        for tag in tags:
+            models.Tag.objects.filter(name=tag.name).delete()
         instance.delete()
 
 class UserLikeView(generics.CreateAPIView):
